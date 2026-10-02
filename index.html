@@ -108,7 +108,7 @@ calendar:function(){var h="<h2>October 2026</h2><div class='cal'>"+["Sun","Mon",
 announcements:function(){return '<h2>Announcements</h2><div class="add"><input type="text" id="an" placeholder="Share an update with the team" aria-label="Announcement"><button class="btn" id="posta">Post update</button></div>'+notes.map(function(n){return '<div class="card" style="margin-bottom:12px"><h3>'+esc(n.t)+'</h3><div>'+esc(n.b)+'</div><div class="lab" style="margin-top:8px">Posted by '+esc(n.a)+'</div></div>'}).join("")}
 };
 function render(){
-  $("nav").innerHTML=NAV.map(function(n){return '<button data-go="'+n[0]+'"'+(n[0]===cur?' aria-current="page"':'')+'><span aria-hidden="true">'+n[2]+'</span>'+n[1]+'</button>'}).join("");
+  $("nav").innerHTML=NAV.map(function(n){return '<button data-go="'+n[0]+'"'+(n[0]===cur?' aria-current="page"':'')+'>'+n[1]+'</button>'}).join("");
   $("view").innerHTML=V[cur]();
   $("crumb").textContent="Home / "+(cur==="overview"?"dashboard":cur);
 }
