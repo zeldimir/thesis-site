@@ -55,7 +55,7 @@ main{flex:1;min-width:0;overflow:auto}
 .done span.t{text-decoration:line-through;color:var(--mute)}
 .t{flex:1}.tag{font-size:11px;color:var(--mute)}
 .add{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-input[type=text],select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;min-width:0}
+input[type=text],input[type=number],input[type=date],select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;min-width:0}
 input[type=text]{flex:1;min-width:160px}
 h2{margin:0 0 16px;font-size:22px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -90,7 +90,9 @@ aside nav{display:flex;gap:4px}nav button{white-space:nowrap;width:auto;margin:0
 </main>
 </div>
 <script>
-var NAV=[["today","Today & my dashboard","🏠"],["overview","Overview","▦"],["tasks","Tasks","✔"],["team","Team","👥"],["calendar","Calendar","📅"],["announcements","Announcements","📢"]];
+var NAV=[["today","Today & my dashboard","🏠"],["overview","Overview","▦"],["tasks","Tasks","✔"],["team","Team","👥"],["calendar","Calendar","📅"],["finances","Finances",""],["announcements","Announcements","📢"]];
+var txs=[{amt:0,date:"2026-10-01",use:"Sample"}];
+var fmt=function(n){return n.toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2})};
 var members=[["Sample","Sample"]];
 var tasks=[{t:"Sample",who:"Sample",d:0,done:false,day:1}];
 var notes=[{t:"Sample",b:"Sample",a:"Sample"}];
@@ -105,6 +107,7 @@ today:function(){var d=tasks.filter(function(x){return x.day===TODAY});return '<
 tasks:function(){return '<h2>Tasks</h2><div class="add"><input type="text" id="nt" placeholder="What needs to be done?" aria-label="Task name"><select id="nw" aria-label="Assign to">'+members.map(function(m){return '<option>'+m[0]+'</option>'}).join("")+'</select><button class="btn" id="addt">Assign task</button></div><div class="card">'+taskList(tasks)+'</div>'},
 team:function(){return '<h2>Team</h2><div class="grid">'+members.map(function(m){var n=tasks.filter(function(x){return x.who===m[0]&&!x.done}).length;return '<div class="card"><div class="av" style="background:var(--btn);color:#fff;margin-bottom:10px">'+m[0].split(" ").map(function(p){return p[0]}).join("")+'</div><b>'+m[0]+'</b><div class="lab">'+m[1]+'</div><div class="lab" style="margin-top:8px">'+n+' open task'+(n===1?'':'s')+'</div></div>'}).join("")+'</div>'},
 calendar:function(){var h="<h2>October 2026</h2><div class='cal'>"+["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(function(d){return "<div class='h'>"+d+"</div>"}).join("");for(var i=0;i<4;i++)h+="<div style='opacity:.3'></div>";for(var d=1;d<=31;d++){var ev=tasks.filter(function(x){return x.day===d}).map(function(x){return '<span class="ev">'+esc(x.t)+'</span>'}).join("");h+='<div'+(d===TODAY?' class="today"':'')+'><b>'+d+'</b>'+ev+'</div>'}return h+"</div>"},
+finances:function(){var tot=txs.reduce(function(s,x){return s+x.amt},0);var rows=txs.slice().sort(function(a,b){return b.date.localeCompare(a.date)}).map(function(x){var i=txs.indexOf(x);return '<div class="item"><span class="tag" style="width:90px">'+esc(x.date)+'</span><span class="t">'+esc(x.use)+'</span><b>₱'+fmt(x.amt)+'</b><button class="link" data-del="'+i+'">Remove</button></div>'}).join("");return '<h2>Finances</h2><div class="grid"><div class="card"><div class="lab">Total spent</div><div class="stat">₱'+fmt(tot)+'</div></div></div><div class="add"><input type="number" id="fa" min="0" step="0.01" placeholder="Amount (₱)" aria-label="Amount"><input type="date" id="fd" value="'+new Date().toISOString().slice(0,10)+'" aria-label="Date"><input type="text" id="fu" placeholder="What was it used for?" aria-label="Purpose"><button class="btn" id="addf">Add transaction</button></div><div class="card"><h3>Financial history</h3>'+(rows||'<p class="lab">No transactions yet.</p>')+'</div>'},
 announcements:function(){return '<h2>Announcements</h2><div class="add"><input type="text" id="an" placeholder="Share an update with the team" aria-label="Announcement"><button class="btn" id="posta">Post update</button></div>'+notes.map(function(n){return '<div class="card" style="margin-bottom:12px"><h3>'+esc(n.t)+'</h3><div>'+esc(n.b)+'</div><div class="lab" style="margin-top:8px">Posted by '+esc(n.a)+'</div></div>'}).join("")}
 };
 function render(){
@@ -115,6 +118,8 @@ function render(){
 document.addEventListener("click",function(e){
   var g=e.target.closest("[data-go]");if(g){cur=g.getAttribute("data-go");render();return}
   if(e.target.id==="addt"){var v=$("nt").value.trim();if(v){tasks.unshift({t:v,who:$("nw").value,d:0,done:false,day:TODAY});render()}}
+  if(e.target.id==="addf"){var m=parseFloat($("fa").value),dt=$("fd").value,u=$("fu").value.trim();if(!isNaN(m)&&m>=0&&dt&&u){txs.push({amt:m,date:dt,use:u});render()}}
+  var dl=e.target.getAttribute&&e.target.getAttribute("data-del");if(dl!==null&&dl!==undefined){txs.splice(+dl,1);render()}
   if(e.target.id==="posta"){var a=$("an").value.trim();if(a){notes.unshift({t:a,b:"",a:"Masaki"});render()}}
 });
 document.addEventListener("change",function(e){var i=e.target.getAttribute&&e.target.getAttribute("data-i");if(i!==null&&i!==undefined){tasks[+i].done=e.target.checked;render()}});
